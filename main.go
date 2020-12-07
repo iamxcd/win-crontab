@@ -30,24 +30,17 @@ func (task Task) Run() {
 	out := bytes.NewBuffer(nil)
 	cmd.Stdin = in   //绑定输入
 	cmd.Stdout = out //绑定输出
-	go func() {
-		in.WriteString(task.Cmd + "\n")
-	}()
 
-	err := cmd.Start()
-	if err != nil {
+	in.WriteString(task.Cmd + "\n")
+
+	if err := cmd.Run(); err != nil {
 		logger.Println("启动命令行错误:", err.Error())
-	}
-	err = cmd.Wait()
-	if err != nil {
-		logger.Println("等待命令执行:", err.Error())
 	}
 	rt := mahonia.NewDecoder("gbk").ConvertString(out.String()) // cmd默认是gbk 转成utf-8
 	logger.Println(rt)
 }
 func main() {
 	tasks, err := readTask()
-
 	if err != nil {
 		logger.Println("读取配置文件错误:", err.Error())
 	}
@@ -57,8 +50,7 @@ func main() {
 	cron := cron.New(cron.WithSeconds())
 	for _, task := range tasks {
 		fmt.Println(task)
-		_, err := cron.AddJob(task.Cron, task)
-		if err != nil {
+		if _, err := cron.AddJob(task.Cron, task); err != nil {
 			logger.Println("添加计划任务失败:", err.Error())
 		}
 	}
