@@ -37,6 +37,7 @@ func (task Task) Run() {
 		logger.Println("启动命令行错误:", err.Error())
 	}
 	rt := mahonia.NewDecoder("gbk").ConvertString(out.String()) // cmd默认是gbk 转成utf-8
+	logger.Println(time.Now().Format("2006-01-02:15:04:05"))
 	logger.Println(rt)
 }
 func main() {
@@ -54,6 +55,11 @@ func main() {
 			logger.Println("添加计划任务失败:", err.Error())
 		}
 	}
+
+	cron.AddFunc("0 0 * * * *", func() {
+		logFile.Close()
+		initLog()
+	})
 	fmt.Println("任务执行中,请勿关闭窗口")
 	cron.Run()
 }
